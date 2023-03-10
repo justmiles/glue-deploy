@@ -1,0 +1,41 @@
+before:
+  hooks:
+    - go mod download
+
+dockers:
+  - image_templates:
+      - "justmiles/glue-deploy:latest"
+      - "justmiles/glue-deploy:{{ .Tag }}"
+      - "justmiles/glue-deploy:v{{ .Major }}"
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--build-arg=VERSION={{ .Tag }}"
+      - "--platform=linux/arm64"
+    dockerfile: .goreleaser.dockerfile
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+    binary: glue-deploy
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^scratch:"
